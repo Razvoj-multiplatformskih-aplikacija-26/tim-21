@@ -1,0 +1,18 @@
+name: boardgame_booking_workspace
+description: BoardGame Booking, one system in one language. The workspace resolves every app and package together.
+publish_to: none
+
+environment:
+  sdk: ^3.13.0
+
+workspace:
+  - apps/mobile
+  - apps/backoffice
+  - packages/domain
+  - packages/use_cases
+  - packages/blocs
+  - packages/ui
+  - packages/design_tokens
+
+dev_dependencies:
+  flutter_lints: 6.0.0
