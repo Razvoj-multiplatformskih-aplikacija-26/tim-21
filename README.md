@@ -4,10 +4,10 @@ Aplikacija za biblioteku društvenih igara: članovi pozajmljuju igre na nekolik
 
 ## Tim
 
-| Ime i prezime | Broj indeksa |
-| ------------- | ------------ |
-| Boris Gočmanac   | SI 96/24     |
-| Boris Živanović   | SI 62/24     |
+| Ime i prezime    | Broj indeksa | GitHub nalog                                 |
+| ---------------- | ------------ | -------------------------------------------- |
+| Boris Gočmanac   | SI 96/24     | [@Bilok66](https://github.com/Bilok66)       |
+| Boris Živanović  | SI 62/24     | [@risboo4](https://github.com/risboo4)       |
 
 ## Zahtevi za temu
 
