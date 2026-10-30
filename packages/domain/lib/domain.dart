@@ -1,2 +1,9 @@
+export 'src/availability.dart';
 export 'src/errors.dart';
+export 'src/identifiers.dart';
+export 'src/inventory/game_copy.dart';
+export 'src/loan/loan.dart';
+export 'src/loan/loan_duration.dart';
+export 'src/loan/loan_rules.dart';
+export 'src/loan/loan_status.dart';
 export 'src/result.dart';
