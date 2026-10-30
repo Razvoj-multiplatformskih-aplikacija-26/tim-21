@@ -1,4 +1,5 @@
 export 'src/availability.dart';
+export 'src/catalog/board_game.dart';
 export 'src/errors.dart';
 export 'src/identifiers.dart';
 export 'src/inventory/game_copy.dart';
