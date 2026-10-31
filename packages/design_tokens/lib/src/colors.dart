@@ -153,7 +153,6 @@ final class ColorTokens {
   );
 }
 
-// Badge colours for the loan states, one background and one text colour each.
 final class StatusColorTokens {
   const StatusColorTokens({
     required this.pending,
