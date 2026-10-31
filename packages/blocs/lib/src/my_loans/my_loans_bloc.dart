@@ -34,7 +34,6 @@ final class MyLoansBloc extends Bloc<MyLoansEvent, MyLoansState> {
       emit(current.withNotice(const CancellationFailed()));
       return;
     }
-    // A refusal means this client was out of date, so it reloads in both cases.
     final notice = switch (result) {
       Success() => const LoanCancelled(),
       Failure(:final error) => CancellationRejected(error),

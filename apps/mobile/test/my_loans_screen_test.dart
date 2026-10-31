@@ -12,7 +12,6 @@ import 'package:use_cases/use_cases.dart';
 const _member = MemberId('ana');
 const _catan = BoardGame(id: BoardGameId('catan'), title: 'Catan');
 
-// A second implementation of the port: the screen runs over it without a single change.
 final class _StubRepository implements LoanRepository {
   _StubRepository(this.loans);
 

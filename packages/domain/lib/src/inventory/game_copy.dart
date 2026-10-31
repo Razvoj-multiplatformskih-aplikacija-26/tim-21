@@ -2,7 +2,6 @@ import 'package:meta/meta.dart';
 
 import '../identifiers.dart';
 
-// Reserved and issued are not listed here: they follow from the loans that hold the copy.
 enum CopyCondition { usable, inInspection, damaged }
 
 @immutable

@@ -26,7 +26,6 @@ final class Loan {
   final LoanStatus status;
   final GameCopyId? copyId;
 
-  // Nobody records that a loan became overdue: it follows from the due date and the clock.
   LoanStatus statusAt(DateTime now) => switch (status) {
     PickedUp(:final dueAt) when now.isAfter(dueAt) => Overdue(dueAt: dueAt),
     final current => current,

@@ -18,6 +18,5 @@ final class AppDependencies {
   final Clock clock;
   final MemberId member;
 
-  // Only the debug menu uses this, to provoke the failure and empty states.
   final FakeLoanRepository? fakeLoans;
 }

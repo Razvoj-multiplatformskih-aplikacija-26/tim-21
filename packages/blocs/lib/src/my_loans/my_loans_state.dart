@@ -50,7 +50,6 @@ final class MyLoansLoaded extends MyLoansState {
   String toString() => 'MyLoansLoaded(${items.length} loans, notice: $notice, cancelling: $cancellingId)';
 }
 
-// What the screen draws for one loan, already decided here so that the screen holds no rules.
 final class LoanItem extends Equatable {
   const LoanItem({required this.loan, required this.gameTitle, required this.status, required this.canCancel});
 

@@ -19,7 +19,6 @@ const fakeGames = [
   BoardGame(id: _wingspan, title: 'Wingspan'),
 ];
 
-// The demo shows every status to one member, so this member holds more active loans than the rule allows.
 List<Loan> seedLoans(DateTime now) {
   DateTime daysAgo(int days) => now.subtract(Duration(days: days));
   DateTime inDays(int days) => now.add(Duration(days: days));
@@ -46,7 +45,6 @@ List<Loan> seedLoans(DateTime now) {
     loan(_catan, const Pending(), requestedDaysAgo: 0, days: 3),
     loan(_azul, Approved(pickupDeadline: inDays(2)), requestedDaysAgo: 1, copy: 'azul-1'),
     loan(_carcassonne, PickedUp(dueAt: inDays(4)), requestedDaysAgo: 4, copy: 'carcassonne-1'),
-    // Stored as picked up: the due date has passed, so statusAt reports it as overdue.
     loan(_ticketToRide, PickedUp(dueAt: daysAgo(2)), requestedDaysAgo: 10, copy: 'ticket-to-ride-1'),
     loan(_dixit, Returned(returnedAt: daysAgo(12)), requestedDaysAgo: 20, days: 5, copy: 'dixit-1'),
     loan(_wingspan, Returned(returnedAt: daysAgo(25)), requestedDaysAgo: 33, copy: 'wingspan-1'),

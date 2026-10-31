@@ -2,7 +2,6 @@ import 'identifiers.dart';
 import 'inventory/game_copy.dart';
 import 'loan/loan.dart';
 
-// The client's answer is only an estimate; the server decides over current data from KT2 on.
 List<GameCopy> freeCopiesOf({required BoardGameId game, required List<GameCopy> copies, required List<Loan> loans}) {
   final held = {
     for (final loan in loans)

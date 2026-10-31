@@ -3,7 +3,6 @@ import 'package:meta/meta.dart';
 sealed class LoanStatus {
   const LoanStatus();
 
-  // Active loans count toward the member's limit.
   bool get isActive => switch (this) {
     Pending() || Approved() || PickedUp() || Overdue() => true,
     Returned() || Rejected() || Cancelled() => false,
