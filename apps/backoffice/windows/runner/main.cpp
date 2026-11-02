@@ -27,9 +27,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   FlutterWindow window(project);
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(1280, 720);
-  if (!window.Create(L"backoffice", origin, size)) {
+  if (!window.Create(L"BoardGame Booking - Backoffice", origin, size)) {
     return EXIT_FAILURE;
   }
+  window.SetMinimumSize(Win32Window::Size(480, 560));
   window.SetQuitOnClose(true);
 
   ::MSG msg;

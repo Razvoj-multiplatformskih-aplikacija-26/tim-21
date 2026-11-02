@@ -34,4 +34,45 @@ void main() {
 
     expect(check([late, pending, pending]), const Failure<void>(MemberHasOverdueLoan()));
   });
+
+  group('approveLoan', () {
+    test('reserves the copy until the pickup window closes', () {
+      final result = approveLoan(pending, monday);
+
+      expect(result.valueOrNull?.status, Approved(pickupDeadline: monday.add(pickupWindow)));
+    });
+
+    test('the pickup window is two days', () {
+      expect(approveLoan(pending, monday).valueOrNull?.status, Approved(pickupDeadline: wednesday));
+    });
+
+    test('refuses a loan that is no longer pending', () {
+      final cancelled = loanOf(ana, status: const Cancelled());
+
+      expect(
+        approveLoan(cancelled, monday),
+        Failure<Loan>(
+          InvalidTransition(
+            from: const Cancelled(),
+            to: Approved(pickupDeadline: wednesday),
+          ),
+        ),
+      );
+    });
+  });
+
+  group('rejectLoan', () {
+    test('rejects a pending loan', () {
+      expect(rejectLoan(pending).valueOrNull?.status, const Rejected());
+    });
+
+    test('refuses a loan that is already approved', () {
+      final approved = Approved(pickupDeadline: wednesday);
+
+      expect(
+        rejectLoan(loanOf(ana, status: approved)),
+        Failure<Loan>(InvalidTransition(from: approved, to: const Rejected())),
+      );
+    });
+  });
 }

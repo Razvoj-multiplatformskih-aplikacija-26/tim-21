@@ -5,6 +5,7 @@ import 'loan.dart';
 import 'loan_status.dart';
 
 const maxActiveLoans = 3;
+const pickupWindow = Duration(days: 2);
 
 Result<void> checkMemberMayRequest({required MemberId member, required List<Loan> loans, required DateTime now}) {
   final memberLoans = loans.where((loan) => loan.memberId == member);
@@ -13,3 +14,8 @@ Result<void> checkMemberMayRequest({required MemberId member, required List<Loan
   if (active >= maxActiveLoans) return Failure(TooManyActiveLoans(active));
   return const Success(null);
 }
+
+Result<Loan> approveLoan(Loan loan, DateTime now) =>
+    changeLoanStatus(loan, Approved(pickupDeadline: now.add(pickupWindow)));
+
+Result<Loan> rejectLoan(Loan loan) => changeLoanStatus(loan, const Rejected());

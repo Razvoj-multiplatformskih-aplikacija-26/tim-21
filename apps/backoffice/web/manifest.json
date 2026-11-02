@@ -1,11 +1,11 @@
 {
-    "name": "backoffice",
-    "short_name": "backoffice",
+    "name": "BoardGame Booking - Backoffice",
+    "short_name": "Backoffice",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "BoardGame Booking - Backoffice: tabla pozajmica za osoblje biblioteke.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

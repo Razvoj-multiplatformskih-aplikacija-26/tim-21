@@ -1,7 +1,20 @@
 import 'package:meta/meta.dart';
 
+/// The kind of a [LoanStatus] without its data, so a set of stages can describe "every picked-up loan".
+enum LoanStage { pending, approved, pickedUp, overdue, returned, rejected, cancelled }
+
 sealed class LoanStatus {
   const LoanStatus();
+
+  LoanStage get stage => switch (this) {
+    Pending() => LoanStage.pending,
+    Approved() => LoanStage.approved,
+    PickedUp() => LoanStage.pickedUp,
+    Overdue() => LoanStage.overdue,
+    Returned() => LoanStage.returned,
+    Rejected() => LoanStage.rejected,
+    Cancelled() => LoanStage.cancelled,
+  };
 
   bool get isActive => switch (this) {
     Pending() || Approved() || PickedUp() || Overdue() => true,
@@ -9,8 +22,15 @@ sealed class LoanStatus {
   };
 }
 
+@immutable
 final class Pending extends LoanStatus {
   const Pending();
+
+  @override
+  bool operator ==(Object other) => other is Pending;
+
+  @override
+  int get hashCode => (Pending).hashCode;
 
   @override
   String toString() => 'Pending';
@@ -80,15 +100,29 @@ final class Returned extends LoanStatus {
   String toString() => 'Returned(at $returnedAt)';
 }
 
+@immutable
 final class Rejected extends LoanStatus {
   const Rejected();
+
+  @override
+  bool operator ==(Object other) => other is Rejected;
+
+  @override
+  int get hashCode => (Rejected).hashCode;
 
   @override
   String toString() => 'Rejected';
 }
 
+@immutable
 final class Cancelled extends LoanStatus {
   const Cancelled();
+
+  @override
+  bool operator ==(Object other) => other is Cancelled;
+
+  @override
+  int get hashCode => (Cancelled).hashCode;
 
   @override
   String toString() => 'Cancelled';

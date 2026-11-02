@@ -33,6 +33,21 @@ void main() {
     ]);
   });
 
+  test('statuses without data are equal by type', () {
+    final pairs = <(LoanStatus, LoanStatus)>[
+      (Pending(), Pending()),
+      (Rejected(), Rejected()),
+      (Cancelled(), Cancelled()),
+    ];
+
+    for (final (a, b) in pairs) {
+      expect(a, b);
+      expect(a.hashCode, b.hashCode);
+    }
+    expect(const Pending(), isNot(const Rejected()));
+    expect(const Rejected(), isNot(const Cancelled()));
+  });
+
   test('only the four open statuses are active', () {
     expect(statuses.where((status) => status.isActive).map((status) => status.runtimeType), [
       Pending,

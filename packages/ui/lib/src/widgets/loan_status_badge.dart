@@ -2,16 +2,20 @@ import 'package:design_tokens/design_tokens.dart';
 import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 
-extension LoanStatusLabel on LoanStatus {
+extension LoanStageLabel on LoanStage {
   String get label => switch (this) {
-    Pending() => 'Na čekanju',
-    Approved() => 'Odobrena',
-    PickedUp() => 'Preuzeta',
-    Overdue() => 'Kasni',
-    Returned() => 'Vraćena',
-    Rejected() => 'Odbijena',
-    Cancelled() => 'Otkazana',
+    LoanStage.pending => 'Na čekanju',
+    LoanStage.approved => 'Odobrena',
+    LoanStage.pickedUp => 'Preuzeta',
+    LoanStage.overdue => 'Kasni',
+    LoanStage.returned => 'Vraćena',
+    LoanStage.rejected => 'Odbijena',
+    LoanStage.cancelled => 'Otkazana',
   };
+}
+
+extension LoanStatusLabel on LoanStatus {
+  String get label => stage.label;
 }
 
 class LoanStatusBadge extends StatelessWidget {
