@@ -19,7 +19,9 @@ final class _Repository implements LoanRepository {
   List<Loan> loans;
   bool failLoad = false;
   bool failCancel = false;
+  bool failRequest = false;
   DomainError? refuseCancel;
+  DomainError? refuseRequest;
   final requestedMembers = <MemberId>[];
 
   @override
@@ -39,6 +41,25 @@ final class _Repository implements LoanRepository {
     final loan = loans.single;
     loans = [loan.copyWith(status: const Cancelled())];
     return Success(loans.single);
+  }
+
+  @override
+  Future<Result<Loan>> request({
+    required MemberId member,
+    required BoardGameId game,
+    required LoanDuration duration,
+  }) async {
+    if (failRequest) throw const RepositoryException('Simulated outage');
+    if (refuseRequest case final error?) return Failure(error);
+    final loan = Loan(
+      id: LoanId('l-${loans.length + 1}'),
+      memberId: member,
+      gameId: game,
+      duration: duration,
+      requestedAt: _now,
+    );
+    loans = [...loans, loan];
+    return Success(loan);
   }
 }
 
@@ -173,6 +194,46 @@ void main() {
       },
       skip: 4,
       expect: () => [isA<MyLoansLoaded>().having((s) => s.notice, 'notice', isNull)],
+    );
+  });
+
+  group('request', () {
+    Future<void> loadThenRequest(MyLoansBloc bloc) async {
+      bloc.add(const MyLoansRequested());
+      await bloc.stream.firstWhere((state) => state is MyLoansLoaded);
+      bloc.add(LoanRequestSubmitted(game: _catan.id, duration: LoanDuration.parse(3).valueOrNull!));
+    }
+
+    blocTest<MyLoansBloc, MyLoansState>(
+      'adds a pending loan and reports that the request was sent',
+      build: () => _blocOver(_Repository([_loan()])),
+      act: loadThenRequest,
+      skip: 2,
+      expect: () => [
+        isA<MyLoansLoaded>()
+            .having((s) => s.items.length, 'items', 2)
+            .having((s) => s.notice, 'notice', const LoanRequestSent()),
+      ],
+    );
+
+    blocTest<MyLoansBloc, MyLoansState>(
+      'reports the domain error when a rule refuses the request',
+      build: () => _blocOver(_Repository([_loan()])..refuseRequest = const MemberHasOverdueLoan()),
+      act: loadThenRequest,
+      skip: 2,
+      expect: () => [
+        isA<MyLoansLoaded>()
+            .having((s) => s.items.length, 'items', 1)
+            .having((s) => s.notice, 'notice', const LoanRequestRejected(MemberHasOverdueLoan())),
+      ],
+    );
+
+    blocTest<MyLoansBloc, MyLoansState>(
+      'reports a failure when the repository cannot be reached',
+      build: () => _blocOver(_Repository([_loan()])..failRequest = true),
+      act: loadThenRequest,
+      skip: 2,
+      expect: () => [isA<MyLoansLoaded>().having((s) => s.notice, 'notice', const LoanRequestFailed())],
     );
   });
 }

@@ -8,5 +8,6 @@ abstract final class BoardGameTheme {
 
   static ThemeData _build(Brightness brightness) => ThemeData(
     colorScheme: ColorScheme.fromSeed(seedColor: const Color(BrandColors.blue), brightness: brightness),
+    fontFamily: 'packages/ui/${FontFamilies.body}',
   );
 }

@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ui/ui.dart';
 
 import 'dependencies.dart';
-import 'screens/my_loans_screen.dart';
+import 'router.dart';
 
 class BoardGameApp extends StatelessWidget {
   const BoardGameApp({super.key, required this.dependencies});
@@ -18,11 +18,11 @@ class BoardGameApp extends StatelessWidget {
       create: (_) =>
           MyLoansBloc(repository: dependencies.loans, clock: dependencies.clock, member: dependencies.member)
             ..add(const MyLoansRequested()),
-      child: MaterialApp(
+      child: MaterialApp.router(
         title: 'BoardGame Booking',
         theme: BoardGameTheme.light(),
         darkTheme: BoardGameTheme.dark(),
-        home: const MyLoansScreen(),
+        routerConfig: router,
       ),
     ),
   );

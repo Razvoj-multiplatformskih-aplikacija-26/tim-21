@@ -13,6 +13,7 @@ final class MyLoansBloc extends Bloc<MyLoansEvent, MyLoansState> {
       await _reload(emit);
     });
     on<LoanCancellationRequested>(_onCancellationRequested);
+    on<LoanRequestSubmitted>(_onRequestSubmitted);
     on<MyLoansNoticeAcknowledged>((event, emit) {
       final current = state;
       if (current is MyLoansLoaded && current.notice != null) emit(current.withNotice(null));
@@ -37,6 +38,22 @@ final class MyLoansBloc extends Bloc<MyLoansEvent, MyLoansState> {
     final notice = switch (result) {
       Success() => const LoanCancelled(),
       Failure(:final error) => CancellationRejected(error),
+    };
+    await _reload(emit, notice: notice);
+  }
+
+  Future<void> _onRequestSubmitted(LoanRequestSubmitted event, Emitter<MyLoansState> emit) async {
+    final Result<Loan> result;
+    try {
+      result = await repository.request(member: member, game: event.game, duration: event.duration);
+    } on RepositoryException {
+      final current = state;
+      if (current is MyLoansLoaded) emit(current.withNotice(const LoanRequestFailed()));
+      return;
+    }
+    final notice = switch (result) {
+      Success() => const LoanRequestSent(),
+      Failure(:final error) => LoanRequestRejected(error),
     };
     await _reload(emit, notice: notice);
   }

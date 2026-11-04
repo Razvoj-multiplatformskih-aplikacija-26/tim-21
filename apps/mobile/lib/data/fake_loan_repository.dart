@@ -5,9 +5,11 @@ import 'seed.dart';
 
 final class FakeLoanRepository implements LoanRepository {
   FakeLoanRepository({required Clock clock, this.latency = const Duration(milliseconds: 500)})
-    : _loans = seedLoans(clock.now());
+    : _clock = clock,
+      _loans = seedLoans(clock.now());
 
   final Duration latency;
+  final Clock _clock;
   final List<Loan> _loans;
   int failingRequests = 0;
   int emptyResponses = 0;
@@ -44,5 +46,25 @@ final class FakeLoanRepository implements LoanRepository {
     final result = changeLoanStatus(_loans[index], const Cancelled());
     if (result case Success(:final value)) _loans[index] = value;
     return result;
+  }
+
+  @override
+  Future<Result<Loan>> request({
+    required MemberId member,
+    required BoardGameId game,
+    required LoanDuration duration,
+  }) async {
+    await _roundTrip();
+    final check = checkMemberMayRequest(member: member, loans: _loans, now: _clock.now());
+    if (check case Failure(:final error)) return Failure(error);
+    final loan = Loan(
+      id: LoanId('loan-${_loans.length + 1}'),
+      memberId: member,
+      gameId: game,
+      duration: duration,
+      requestedAt: _clock.now(),
+    );
+    _loans.add(loan);
+    return Success(loan);
   }
 }

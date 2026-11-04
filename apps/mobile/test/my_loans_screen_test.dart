@@ -38,6 +38,10 @@ final class _StubRepository implements LoanRepository {
     if (result case Success(:final value)) loans = [value];
     return result;
   }
+
+  @override
+  Future<Result<Loan>> request({required MemberId member, required BoardGameId game, required LoanDuration duration}) =>
+      throw UnimplementedError();
 }
 
 Loan _pendingLoan() => Loan(

@@ -28,3 +28,6 @@ key.properties
 # Logs and test output
 *.log
 coverage/
+
+# Course materials (private)
+materijali/

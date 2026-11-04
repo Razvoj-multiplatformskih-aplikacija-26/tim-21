@@ -85,3 +85,20 @@ final class CancellationRejected extends MyLoansNotice {
 final class CancellationFailed extends MyLoansNotice {
   const CancellationFailed();
 }
+
+final class LoanRequestSent extends MyLoansNotice {
+  const LoanRequestSent();
+}
+
+final class LoanRequestRejected extends MyLoansNotice {
+  const LoanRequestRejected(this.error);
+
+  final DomainError error;
+
+  @override
+  List<Object?> get props => [error];
+}
+
+final class LoanRequestFailed extends MyLoansNotice {
+  const LoanRequestFailed();
+}
