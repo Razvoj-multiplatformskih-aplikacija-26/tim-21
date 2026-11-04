@@ -36,21 +36,27 @@ void main() {
   });
 
   group('approveLoan', () {
+    const copy = GameCopyId('catan-1');
+
     test('reserves the copy until the pickup window closes', () {
-      final result = approveLoan(pending, monday);
+      final result = approveLoan(pending, copy, monday);
 
       expect(result.valueOrNull?.status, Approved(pickupDeadline: monday.add(pickupWindow)));
     });
 
     test('the pickup window is two days', () {
-      expect(approveLoan(pending, monday).valueOrNull?.status, Approved(pickupDeadline: wednesday));
+      expect(approveLoan(pending, copy, monday).valueOrNull?.status, Approved(pickupDeadline: wednesday));
+    });
+
+    test('writes the assigned copy into the loan', () {
+      expect(approveLoan(pending, copy, monday).valueOrNull?.copyId, copy);
     });
 
     test('refuses a loan that is no longer pending', () {
       final cancelled = loanOf(ana, status: const Cancelled());
 
       expect(
-        approveLoan(cancelled, monday),
+        approveLoan(cancelled, copy, monday),
         Failure<Loan>(
           InvalidTransition(
             from: const Cancelled(),

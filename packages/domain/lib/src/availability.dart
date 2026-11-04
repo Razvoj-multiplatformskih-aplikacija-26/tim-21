@@ -1,6 +1,8 @@
+import 'errors.dart';
 import 'identifiers.dart';
 import 'inventory/game_copy.dart';
 import 'loan/loan.dart';
+import 'result.dart';
 
 List<GameCopy> freeCopiesOf({required BoardGameId game, required List<GameCopy> copies, required List<Loan> loans}) {
   final held = {
@@ -11,4 +13,10 @@ List<GameCopy> freeCopiesOf({required BoardGameId game, required List<GameCopy> 
     for (final copy in copies)
       if (copy.gameId == game && copy.condition == CopyCondition.usable && !held.contains(copy.id)) copy,
   ];
+}
+
+Result<GameCopyId> assignCopy({required BoardGameId game, required List<GameCopy> copies, required List<Loan> loans}) {
+  final free = freeCopiesOf(game: game, copies: copies, loans: loans);
+  if (free.isEmpty) return const Failure(NoFreeCopy());
+  return Success(free.first.id);
 }

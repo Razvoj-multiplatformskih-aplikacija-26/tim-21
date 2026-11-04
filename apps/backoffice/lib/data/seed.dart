@@ -13,6 +13,7 @@ const _carcassonne = BoardGameId('carcassonne');
 const _ticketToRide = BoardGameId('ticket-to-ride');
 const _dixit = BoardGameId('dixit');
 const _wingspan = BoardGameId('wingspan');
+const _splendor = BoardGameId('splendor');
 
 const fakeGames = [
   BoardGame(id: _catan, title: 'Catan'),
@@ -21,6 +22,25 @@ const fakeGames = [
   BoardGame(id: _ticketToRide, title: 'Ticket to Ride'),
   BoardGame(id: _dixit, title: 'Dixit'),
   BoardGame(id: _wingspan, title: 'Wingspan'),
+  BoardGame(id: _splendor, title: 'Splendor'),
+];
+
+const fakeCopies = [
+  GameCopy(id: GameCopyId('catan-1'), gameId: _catan),
+  GameCopy(id: GameCopyId('catan-2'), gameId: _catan),
+  GameCopy(id: GameCopyId('catan-3'), gameId: _catan),
+  GameCopy(id: GameCopyId('azul-1'), gameId: _azul),
+  GameCopy(id: GameCopyId('azul-2'), gameId: _azul),
+  GameCopy(id: GameCopyId('azul-3'), gameId: _azul),
+  GameCopy(id: GameCopyId('carcassonne-1'), gameId: _carcassonne),
+  GameCopy(id: GameCopyId('ticket-to-ride-1'), gameId: _ticketToRide),
+  GameCopy(id: GameCopyId('dixit-1'), gameId: _dixit),
+  GameCopy(id: GameCopyId('dixit-2'), gameId: _dixit),
+  GameCopy(id: GameCopyId('dixit-3'), gameId: _dixit),
+  GameCopy(id: GameCopyId('wingspan-1'), gameId: _wingspan),
+  GameCopy(id: GameCopyId('wingspan-2'), gameId: _wingspan),
+  GameCopy(id: GameCopyId('wingspan-3'), gameId: _wingspan),
+  GameCopy(id: GameCopyId('splendor-1'), gameId: _splendor),
 ];
 
 List<Loan> seedLoans(DateTime now) {
@@ -50,8 +70,8 @@ List<Loan> seedLoans(DateTime now) {
     loan(_marko, _azul, const Pending(), requestedDaysAgo: 0, days: 5),
     loan(_jelena, _dixit, const Pending(), requestedDaysAgo: 0),
     loan(_nikola, _wingspan, const Pending(), requestedDaysAgo: 1, days: 4),
-    loan(_ana, _carcassonne, const Pending(), requestedDaysAgo: 1, days: 2),
-    loan(_marko, _ticketToRide, const Pending(), requestedDaysAgo: 1),
+    loan(_ana, _splendor, const Pending(), requestedDaysAgo: 1, days: 2),
+    loan(_marko, _splendor, const Pending(), requestedDaysAgo: 1),
 
     loan(_ana, _azul, Approved(pickupDeadline: inDays(2)), requestedDaysAgo: 1, copy: 'azul-1'),
     loan(_jelena, _catan, Approved(pickupDeadline: inDays(1)), requestedDaysAgo: 2, days: 5, copy: 'catan-1'),

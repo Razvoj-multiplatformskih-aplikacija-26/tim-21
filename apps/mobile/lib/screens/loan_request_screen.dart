@@ -57,6 +57,7 @@ class _LoanRequestScreenState extends State<LoanRequestScreen> {
                 TextFormField(
                   controller: _days,
                   keyboardType: TextInputType.number,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
                   decoration: const InputDecoration(
                     labelText: 'Broj dana',
                     helperText: 'Od ${LoanDuration.minDays} do ${LoanDuration.maxDays} dana',

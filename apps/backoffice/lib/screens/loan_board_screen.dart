@@ -58,7 +58,7 @@ class _LoanBoardScreenState extends State<LoanBoardScreen> {
   @override
   Widget build(BuildContext context) => LoanBoardShortcuts(
     child: Scaffold(
-      appBar: AppBar(title: const Text('Tabla pozajmica'), actions: const [_DebugActions()]),
+      appBar: AppBar(title: const Text('Tabla pozajmica'), actions: const [_ReloadButton(), _DebugActions()]),
       body: BlocConsumer<LoanBoardBloc, LoanBoardState>(
         listenWhen: (previous, current) => current is LoanBoardLoaded && current.notice != null,
         listener: (context, state) => _showNotice(context, (state as LoanBoardLoaded).notice!),
@@ -186,6 +186,20 @@ class _DetailSheetState extends State<_DetailSheet> {
   }
 }
 
+class _ReloadButton extends StatelessWidget {
+  const _ReloadButton();
+
+  @override
+  Widget build(BuildContext context) => BlocBuilder<LoanBoardBloc, LoanBoardState>(
+    buildWhen: (previous, current) => previous.isBusy != current.isBusy,
+    builder: (context, state) => IconButton(
+      tooltip: 'Osveži',
+      icon: const Icon(Icons.refresh),
+      onPressed: state.isBusy ? null : () => context.read<LoanBoardBloc>().add(const LoanBoardRequested()),
+    ),
+  );
+}
+
 class _DebugActions extends StatelessWidget {
   const _DebugActions();
 
@@ -210,7 +224,8 @@ class _DebugActions extends StatelessWidget {
                   ? null
                   : () {
                       fake.failingRequests = 1;
-                      reload();
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(const SnackBar(content: Text('Sledeći zahtev neće uspeti.')));
                     },
             ),
             _DebugButton(

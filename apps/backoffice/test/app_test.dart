@@ -66,6 +66,29 @@ void main() {
     expect(find.text('Pozajmica je odobrena.'), findsOneWidget);
     expect(buttonWith(tester, 'Odobri').onPressed, isNull);
     expect(buttonWith(tester, 'Odbij').onPressed, isNull);
+    expect(find.text('catan-3'), findsOneWidget);
+  });
+
+  testWidgets('the second approval for the only copy of a game is refused', (tester) async {
+    await pumpWideBoard(tester);
+
+    await tester.tap(find.byKey(const ValueKey(LoanId('desk-5'))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Odobri'));
+    await tester.pumpAndSettle();
+    expect(find.text('Pozajmica je odobrena.'), findsOneWidget);
+    expect(find.text('splendor-1'), findsOneWidget);
+    ScaffoldMessenger.of(tester.element(find.byType(LoanBoardScreen))).removeCurrentSnackBar();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey(LoanId('desk-6'))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Odobri'));
+    await tester.pumpAndSettle();
+    expect(find.text('Nema slobodne kopije ove igre.'), findsOneWidget);
+    final second = boardState(tester).items.firstWhere((item) => item.loan.id == const LoanId('desk-6'));
+    expect(second.status, const Pending());
+    expect(second.loan.copyId, isNull);
   });
 
   testWidgets('arrow down selects the first loan when nothing is selected', (tester) async {
@@ -110,15 +133,71 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> refresh(WidgetTester tester) async {
+    await tester.tap(find.byTooltip('Osveži'));
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('simulated failure shows retry and recovers', (tester) async {
     await pumpWideBoard(tester);
 
     await simulate(tester, 'Simuliraj grešku');
+    expect(find.text('Sledeći zahtev neće uspeti.'), findsOneWidget);
+    expect(find.byType(LoanTable), findsOneWidget);
+
+    await refresh(tester);
     expect(find.text('Pokušaj ponovo'), findsOneWidget);
 
     await tester.tap(find.text('Pokušaj ponovo'));
     await tester.pumpAndSettle();
     expect(find.text('Zatraženo'), findsOneWidget);
+  });
+
+  Border? focusFrameBorder(WidgetTester tester, Key key) =>
+      (tester.widget<DecoratedBox>(find.byKey(key)).decoration as BoxDecoration).border as Border?;
+
+  Color primaryOf(WidgetTester tester) => Theme.of(tester.element(find.byType(LoanBoardScreen))).colorScheme.primary;
+
+  testWidgets('the focused table shows a frame even when nothing is selected', (tester) async {
+    await pumpWideBoard(tester);
+
+    expect(boardState(tester).selectedId, isNull);
+    expect(focusFrameBorder(tester, LoanTable.focusFrameKey), Border.all(color: primaryOf(tester), width: 2));
+  });
+
+  testWidgets('the focused narrow list shows a frame even when nothing is selected', (tester) async {
+    await pumpBoard(tester, width: 600);
+
+    expect(boardState(tester).selectedId, isNull);
+    expect(focusFrameBorder(tester, LoanList.focusFrameKey), Border.all(color: primaryOf(tester), width: 2));
+  });
+
+  testWidgets('focus and its frame come back to the table after retry', (tester) async {
+    await pumpWideBoard(tester);
+
+    await simulate(tester, 'Simuliraj grešku');
+    await refresh(tester);
+    await tester.tap(find.text('Pokušaj ponovo'));
+    await tester.pumpAndSettle();
+
+    expect(boardState(tester).selectedId, isNull);
+    expect(FocusManager.instance.primaryFocus?.debugLabel, 'loan board');
+    expect(focusFrameBorder(tester, LoanTable.focusFrameKey), Border.all(color: primaryOf(tester), width: 2));
+  });
+
+  testWidgets('a simulated failure hits the next action', (tester) async {
+    await pumpWideBoard(tester);
+    await tester.tap(find.byKey(const ValueKey(LoanId('desk-1'))));
+    await tester.pumpAndSettle();
+
+    await simulate(tester, 'Simuliraj grešku');
+    ScaffoldMessenger.of(tester.element(find.byType(LoanBoardScreen))).removeCurrentSnackBar();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Odobri'));
+    await tester.pumpAndSettle();
+    expect(find.text('Izmena nije sačuvana. Pokušajte ponovo.'), findsOneWidget);
+    expect(boardState(tester).selected?.status, const Pending());
   });
 
   testWidgets('simulated empty response shows the empty view and recovers', (tester) async {
@@ -161,20 +240,24 @@ void main() {
     await tabTo(tester, 'Simuliraj grešku');
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     await tester.pumpAndSettle();
-    expect(find.text('Pokušaj ponovo'), findsOneWidget);
+    expect(find.text('Sledeći zahtev neće uspeti.'), findsOneWidget);
   });
 
-  testWidgets('simulation buttons are disabled while the board is loading', (tester) async {
+  testWidgets('simulation and refresh buttons are disabled while the board is loading', (tester) async {
     await pumpWideBoard(tester);
+    VoidCallback? refreshPressed() =>
+        tester.widget<IconButton>(find.widgetWithIcon(IconButton, Icons.refresh)).onPressed;
 
-    await tester.tap(find.text('Simuliraj grešku'));
+    await tester.tap(find.byTooltip('Osveži'));
     await tester.pump();
     expect(buttonWith(tester, 'Simuliraj grešku').onPressed, isNull);
     expect(buttonWith(tester, 'Simuliraj prazan odgovor').onPressed, isNull);
+    expect(refreshPressed(), isNull);
 
     await tester.pumpAndSettle();
     expect(buttonWith(tester, 'Simuliraj grešku').onPressed, isNotNull);
     expect(buttonWith(tester, 'Simuliraj prazan odgovor').onPressed, isNotNull);
+    expect(refreshPressed(), isNotNull);
   });
 
   group('narrow window', () {
@@ -279,6 +362,9 @@ void main() {
 
       await tester.tap(find.byTooltip('Simuliraj grešku'));
       await tester.pumpAndSettle();
+      expect(find.text('Sledeći zahtev neće uspeti.'), findsOneWidget);
+
+      await refresh(tester);
       expect(find.text('Pokušaj ponovo'), findsOneWidget);
     });
 

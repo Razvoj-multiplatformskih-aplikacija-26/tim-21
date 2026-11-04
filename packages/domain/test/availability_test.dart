@@ -43,4 +43,37 @@ void main() {
 
     expect(free([first, inspected, damaged], []), [first]);
   });
+
+  group('assignCopy', () {
+    Result<GameCopyId> assign(List<GameCopy> copies, List<Loan> loans) =>
+        assignCopy(game: catan, copies: copies, loans: loans);
+
+    test('assigns a free copy of the game', () {
+      expect(assign([otherGame, first, second], []), Success(first.id));
+    });
+
+    test('skips a copy held by another member', () {
+      final held = loanOf(
+        marko,
+        status: Approved(pickupDeadline: wednesday),
+        copy: first.id,
+      );
+
+      expect(assign([first, second], [held]), Success(second.id));
+    });
+
+    test('fails when every copy of the game is held', () {
+      final held = loanOf(
+        marko,
+        status: PickedUp(dueAt: wednesday),
+        copy: first.id,
+      );
+
+      expect(assign([first, otherGame], [held]), const Failure<GameCopyId>(NoFreeCopy()));
+    });
+
+    test('a pending request does not take the only copy', () {
+      expect(assign([first], [loanOf(marko)]), Success(first.id));
+    });
+  });
 }

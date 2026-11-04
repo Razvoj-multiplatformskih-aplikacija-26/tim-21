@@ -71,10 +71,11 @@ class _DebugMenu extends StatelessWidget {
           switch (action) {
             case _DebugAction.failNextRequest:
               fake.failingRequests = 1;
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sledeći zahtev neće uspeti.')));
             case _DebugAction.emptyNextResponse:
               fake.emptyResponses = 1;
+              context.read<MyLoansBloc>().add(const MyLoansRequested());
           }
-          context.read<MyLoansBloc>().add(const MyLoansRequested());
         },
         itemBuilder: (_) => const [
           PopupMenuItem(value: _DebugAction.failNextRequest, child: Text('Simuliraj grešku')),

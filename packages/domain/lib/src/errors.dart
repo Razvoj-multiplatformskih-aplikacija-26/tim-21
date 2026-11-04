@@ -45,6 +45,13 @@ final class MemberHasOverdueLoan extends DomainError {
   String toString() => 'MemberHasOverdueLoan';
 }
 
+final class NoFreeCopy extends DomainError {
+  const NoFreeCopy();
+
+  @override
+  String toString() => 'NoFreeCopy';
+}
+
 @immutable
 final class InvalidTransition extends DomainError {
   const InvalidTransition({required this.from, required this.to});

@@ -33,7 +33,8 @@ final class _Desk implements LoanDeskRepository {
   Future<List<BoardGame>> games() async => const [_catan];
 
   @override
-  Future<Result<Loan>> approve(LoanId id) => _change(id, (loan) => approveLoan(loan, _now));
+  Future<Result<Loan>> approve(LoanId id) =>
+      _change(id, (loan) => approveLoan(loan, const GameCopyId('catan-1'), _now));
 
   @override
   Future<Result<Loan>> reject(LoanId id) => _change(id, rejectLoan);
@@ -212,6 +213,7 @@ void main() {
         isA<LoanBoardLoaded>().having((s) => s.busyId, 'busy', const LoanId('a')),
         isA<LoanBoardLoaded>()
             .having((s) => s.items.first.status, 'status', Approved(pickupDeadline: _now.add(pickupWindow)))
+            .having((s) => s.items.first.loan.copyId, 'copy', const GameCopyId('catan-1'))
             .having((s) => s.items.first.canApprove, 'canApprove', isFalse)
             .having((s) => s.notice, 'notice', isA<LoanBoardActionSucceeded>())
             .having((s) => s.selectedId, 'selected', const LoanId('a'))

@@ -15,7 +15,10 @@ Result<void> checkMemberMayRequest({required MemberId member, required List<Loan
   return const Success(null);
 }
 
-Result<Loan> approveLoan(Loan loan, DateTime now) =>
-    changeLoanStatus(loan, Approved(pickupDeadline: now.add(pickupWindow)));
+Result<Loan> approveLoan(Loan loan, GameCopyId copy, DateTime now) =>
+    switch (changeLoanStatus(loan, Approved(pickupDeadline: now.add(pickupWindow)))) {
+      Success(:final value) => Success(value.copyWith(copyId: copy)),
+      final Failure<Loan> failure => failure,
+    };
 
 Result<Loan> rejectLoan(Loan loan) => changeLoanStatus(loan, const Rejected());

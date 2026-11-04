@@ -20,6 +20,7 @@ class LoanList extends StatefulWidget {
   });
 
   static const itemHeight = 96.0;
+  static const focusFrameKey = ValueKey('loan-list-focus-frame');
 
   final List<LoanBoardItem> items;
   final LoanId? selectedId;
@@ -95,22 +96,29 @@ class _LoanListState extends State<LoanList> {
         label: 'Lista pozajmica, ${items.length} pozajmica',
         child: ListenableBuilder(
           listenable: widget.focusNode,
-          builder: (context, _) => ListView.builder(
-            controller: _scroll,
-            padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
-            itemExtent: LoanList.itemHeight,
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              final selected = item.loan.id == widget.selectedId;
-              return _LoanCard(
-                key: ValueKey(item.loan.id),
-                item: item,
-                selected: selected,
-                focused: selected && widget.focusNode.hasFocus,
-                onTap: () => _tapCard(item.loan.id),
-              );
-            },
+          builder: (context, _) => DecoratedBox(
+            key: LoanList.focusFrameKey,
+            position: DecorationPosition.foreground,
+            decoration: widget.focusNode.hasFocus
+                ? BoxDecoration(border: Border.all(color: Theme.of(context).colorScheme.primary, width: 2))
+                : const BoxDecoration(),
+            child: ListView.builder(
+              controller: _scroll,
+              padding: const EdgeInsets.symmetric(horizontal: Spacing.md),
+              itemExtent: LoanList.itemHeight,
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                final selected = item.loan.id == widget.selectedId;
+                return _LoanCard(
+                  key: ValueKey(item.loan.id),
+                  item: item,
+                  selected: selected,
+                  focused: selected && widget.focusNode.hasFocus,
+                  onTap: () => _tapCard(item.loan.id),
+                );
+              },
+            ),
           ),
         ),
       ),

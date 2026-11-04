@@ -25,6 +25,7 @@ class LoanTable extends StatefulWidget {
   });
 
   static const rowHeight = 52.0;
+  static const focusFrameKey = ValueKey('loan-table-focus-frame');
 
   final List<LoanBoardItem> items;
   final LoanId? selectedId;
@@ -88,45 +89,52 @@ class _LoanTableState extends State<LoanTable> {
       child: Semantics(
         container: true,
         label: 'Tabla pozajmica, ${items.length} pozajmica',
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Material(
-              color: theme.colorScheme.surfaceContainerLow,
-              child: SizedBox(
-                height: 44,
-                child: _Columns(
-                  game: _HeaderCell('Igra', style: headerStyle),
-                  member: _HeaderCell('Član', style: headerStyle),
-                  status: _HeaderCell('Stanje', style: headerStyle),
-                  deadline: _HeaderCell('Rok', style: headerStyle),
-                  requested: _HeaderCell('Zatraženo', style: headerStyle),
+        child: ListenableBuilder(
+          listenable: widget.focusNode,
+          builder: (context, _) => DecoratedBox(
+            key: LoanTable.focusFrameKey,
+            position: DecorationPosition.foreground,
+            decoration: widget.focusNode.hasFocus
+                ? BoxDecoration(border: Border.all(color: theme.colorScheme.primary, width: 2))
+                : const BoxDecoration(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Material(
+                  color: theme.colorScheme.surfaceContainerLow,
+                  child: SizedBox(
+                    height: 44,
+                    child: _Columns(
+                      game: _HeaderCell('Igra', style: headerStyle),
+                      member: _HeaderCell('Član', style: headerStyle),
+                      status: _HeaderCell('Stanje', style: headerStyle),
+                      deadline: _HeaderCell('Rok', style: headerStyle),
+                      requested: _HeaderCell('Zatraženo', style: headerStyle),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: ListenableBuilder(
-                listenable: widget.focusNode,
-                builder: (context, _) => ListView.builder(
-                  controller: _scroll,
-                  itemExtent: LoanTable.rowHeight,
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    final item = items[index];
-                    final selected = item.loan.id == widget.selectedId;
-                    return _LoanRow(
-                      key: ValueKey(item.loan.id),
-                      item: item,
-                      selected: selected,
-                      focused: selected && widget.focusNode.hasFocus,
-                      onTap: () => _tapRow(item.loan.id),
-                    );
-                  },
+                const Divider(height: 1),
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scroll,
+                    itemExtent: LoanTable.rowHeight,
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      final selected = item.loan.id == widget.selectedId;
+                      return _LoanRow(
+                        key: ValueKey(item.loan.id),
+                        item: item,
+                        selected: selected,
+                        focused: selected && widget.focusNode.hasFocus,
+                        onTap: () => _tapRow(item.loan.id),
+                      );
+                    },
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

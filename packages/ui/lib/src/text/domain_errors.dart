@@ -6,5 +6,6 @@ extension DomainErrorMessage on DomainError {
     TooManyActiveLoans() => 'Možete imati najviše $maxActiveLoans aktivne pozajmice.',
     MemberHasOverdueLoan() => 'Imate pozajmicu koja kasni. Vratite je pre novog zahteva.',
     InvalidTransition() => 'Ova promena stanja pozajmice više nije moguća.',
+    NoFreeCopy() => 'Nema slobodne kopije ove igre.',
   };
 }
