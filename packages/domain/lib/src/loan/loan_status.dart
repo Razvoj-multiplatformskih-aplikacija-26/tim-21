@@ -1,6 +1,5 @@
 import 'package:meta/meta.dart';
 
-/// The kind of a [LoanStatus] without its data, so a set of stages can describe "every picked-up loan".
 enum LoanStage { pending, approved, pickedUp, overdue, returned, rejected, cancelled }
 
 sealed class LoanStatus {

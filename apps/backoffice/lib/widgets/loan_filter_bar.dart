@@ -57,7 +57,6 @@ class LoanFilterBar extends StatelessWidget {
   );
 }
 
-/// A labelled drop-down whose first option, „Sve“, stands for no restriction (`null`).
 class _Picker<T> extends StatelessWidget {
   const _Picker({required this.label, required this.value, required this.options, required this.onChanged});
 

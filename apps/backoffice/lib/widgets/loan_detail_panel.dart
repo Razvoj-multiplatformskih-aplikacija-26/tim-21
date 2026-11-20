@@ -52,20 +52,11 @@ class _Detail extends StatelessWidget {
   final ValueChanged<LoanId> onApprove;
   final ValueChanged<LoanId> onReject;
 
-  (String, String)? get _statusDate => switch (item.status) {
-    Approved(:final pickupDeadline) => ('Preuzeti do', formatDate(pickupDeadline)),
-    PickedUp(:final dueAt) => ('Vratiti do', formatDate(dueAt)),
-    Overdue(:final dueAt) => ('Rok je bio', formatDate(dueAt)),
-    Returned(:final returnedAt) => ('Vraćena', formatDate(returnedAt)),
-    Pending() || Rejected() || Cancelled() => null,
-  };
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final loan = item.loan;
-    final days = loan.duration.days;
-    final statusDate = _statusDate;
+    final deadline = deadlineOf(item.status);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -88,9 +79,9 @@ class _Detail extends StatelessWidget {
               children: [
                 _Field(label: 'Član', value: loan.memberId.value),
                 _Field(label: 'Kopija', value: loan.copyId?.value ?? 'Nije dodeljena'),
-                _Field(label: 'Trajanje', value: '$days ${days == 1 ? 'dan' : 'dana'}'),
+                _Field(label: 'Trajanje', value: durationText(loan.duration)),
                 _Field(label: 'Zatraženo', value: formatDate(loan.requestedAt)),
-                if (statusDate case (final label, final value)) _Field(label: label, value: value),
+                if (deadline case (:final label, :final date)) _Field(label: label, value: date),
               ],
             ),
           ),

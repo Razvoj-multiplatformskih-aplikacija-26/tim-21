@@ -7,13 +7,15 @@ import '../result.dart';
 final class LoanDuration {
   const LoanDuration._(this.days);
 
+  const LoanDuration.existing(int days) : this._(days);
+
   static const minDays = 1;
   static const maxDays = 7;
 
   final int days;
 
   static Result<LoanDuration> parse(int days) {
-    if (days < minDays || days > maxDays) return Failure(InvalidLoanDuration(days));
+    if (days < minDays || days > maxDays) return Failure(InvalidLoanDuration(days, min: minDays, max: maxDays));
     return Success(LoanDuration._(days));
   }
 

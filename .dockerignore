@@ -1,0 +1,9 @@
+*
+!pubspec.lock
+!packages/domain
+!packages/use_cases
+!packages/api_contract
+!packages/api_mapping
+!apps/server
+**/.dart_tool
+**/build

@@ -8,6 +8,7 @@ const _catan = BoardGame(id: BoardGameId('catan'), title: 'Catan');
 const _ana = MemberId('ana');
 const _marko = MemberId('marko');
 final _now = DateTime.utc(2026, 11, 2, 12);
+const _outage = RepositoryException('Simulated outage', failure: RepositoryFailure.unreachable);
 
 final class _FixedClock implements Clock {
   @override
@@ -21,11 +22,13 @@ final class _Desk implements LoanDeskRepository {
   bool failLoad = false;
   bool failAction = false;
   DomainError? refuse;
+
+  List<Loan>? afterRefusal;
   int actionCalls = 0;
 
   @override
   Future<List<Loan>> allLoans() async {
-    if (failLoad) throw const RepositoryException('Simulated outage');
+    if (failLoad) throw _outage;
     return loans;
   }
 
@@ -41,8 +44,11 @@ final class _Desk implements LoanDeskRepository {
 
   Future<Result<Loan>> _change(LoanId id, Result<Loan> Function(Loan) decide) async {
     actionCalls++;
-    if (failAction) throw const RepositoryException('Simulated outage');
-    if (refuse case final error?) return Failure(error);
+    if (failAction) throw _outage;
+    if (refuse case final error?) {
+      if (afterRefusal case final changed?) loans = changed;
+      return Failure(error);
+    }
     final index = loans.indexWhere((loan) => loan.id == id);
     final result = decide(loans[index]);
     if (result case Success(:final value)) loans = [...loans]..[index] = value;
@@ -113,10 +119,10 @@ void main() {
     );
 
     blocTest<LoanBoardBloc, LoanBoardState>(
-      'emits failure when the repository cannot be reached',
+      'emits failure with its cause when the repository cannot be reached',
       build: () => _blocOver(_Desk(_threeLoans())..failLoad = true),
       act: (bloc) => bloc.add(const LoanBoardRequested()),
-      expect: () => const [LoanBoardLoading(), LoanBoardFailure()],
+      expect: () => const [LoanBoardLoading(), LoanBoardFailure(_outage)],
     );
 
     blocTest<LoanBoardBloc, LoanBoardState>(
@@ -258,9 +264,77 @@ void main() {
       expect: () => [
         isA<LoanBoardLoaded>()
             .having((s) => s.items.first.status, 'status', const Pending())
-            .having((s) => s.notice, 'notice', const LoanBoardActionFailed())
+            .having((s) => s.notice, 'notice', const LoanBoardActionFailed(_outage))
             .having((s) => s.selectedId, 'selected', const LoanId('a'))
             .having((s) => s.isBusy, 'busy', isFalse),
+      ],
+    );
+  });
+
+  group('late client', () {
+    Future<void> loadSelectThenApprove(LoanBoardBloc bloc) async {
+      await _load(bloc);
+      bloc
+        ..add(const LoanBoardSelected(LoanId('a')))
+        ..add(const LoanApprovalRequested(LoanId('a')));
+    }
+
+    final approvedByOther = Approved(pickupDeadline: _now.add(pickupWindow));
+
+    blocTest<LoanBoardBloc, LoanBoardState>(
+      '409 no-free-copy names the error, reloads the board and keeps the loan pending and selected',
+      build: () => _blocOver(_Desk(_threeLoans())..refuse = const NoFreeCopy()),
+      act: loadSelectThenApprove,
+      skip: 3,
+      expect: () => [
+        isA<LoanBoardLoaded>().having((s) => s.busyId, 'busy', const LoanId('a')),
+        isA<LoanBoardLoaded>()
+            .having((s) => s.notice, 'notice', const LoanBoardActionRejected(NoFreeCopy()))
+            .having((s) => s.selected?.status, 'status', const Pending())
+            .having((s) => s.selectedId, 'selected', const LoanId('a'))
+            .having((s) => s.isBusy, 'busy', isFalse),
+      ],
+      verify: (bloc) => expect((bloc.repository as _Desk).actionCalls, 1),
+    );
+
+    blocTest<LoanBoardBloc, LoanBoardState>(
+      '409 invalid-transition after another librarian approved it shows the new state and keeps the selection',
+      build: () => _blocOver(
+        _Desk(_threeLoans())
+          ..refuse = InvalidTransition(from: approvedByOther, to: approvedByOther)
+          ..afterRefusal = [_loan('c', daysAgo: 2), _loan('a', status: approvedByOther), _loan('b', daysAgo: 1)],
+      ),
+      act: loadSelectThenApprove,
+      skip: 4,
+      expect: () => [
+        isA<LoanBoardLoaded>()
+            .having((s) => s.notice, 'notice', isA<LoanBoardActionRejected>())
+            .having((s) => (s.notice! as LoanBoardActionRejected).error, 'error', isA<InvalidTransition>())
+            .having((s) => s.selected?.status, 'status', approvedByOther)
+            .having((s) => s.selected?.canApprove, 'canApprove', isFalse)
+            .having((s) => s.selectedId, 'selected', const LoanId('a')),
+      ],
+    );
+
+    blocTest<LoanBoardBloc, LoanBoardState>(
+      'a refused loan that is no longer on the board loses the selection',
+      build: () => _blocOver(
+        _Desk(_threeLoans())
+          ..refuse = const InvalidTransition(from: Cancelled(), to: Rejected())
+          ..afterRefusal = [_loan('c', daysAgo: 2), _loan('b', daysAgo: 1)],
+      ),
+      act: (bloc) async {
+        await _load(bloc);
+        bloc
+          ..add(const LoanBoardSelected(LoanId('a')))
+          ..add(const LoanRejectionRequested(LoanId('a')));
+      },
+      skip: 4,
+      expect: () => [
+        isA<LoanBoardLoaded>()
+            .having((s) => s.notice, 'notice', isA<LoanBoardActionRejected>())
+            .having((s) => _ids(s.items), 'items', ['b', 'c'])
+            .having((s) => s.selectedId, 'selected', isNull),
       ],
     );
   });

@@ -1,6 +1,7 @@
 import 'package:domain/domain.dart';
 
 const fakeMember = MemberId('member-1');
+const fakeUser = User(id: UserId('member-1'), name: 'Ana', role: Role.member);
 const _otherMember = MemberId('member-2');
 
 const _catan = BoardGameId('catan');

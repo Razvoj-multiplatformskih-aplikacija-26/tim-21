@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ui/ui.dart';
 
-import 'loan_table.dart';
 import 'scroll_reveal.dart';
 
 class LoanList extends StatefulWidget {
@@ -195,7 +194,7 @@ class _LoanCard extends StatelessWidget {
                       LoanStatusBadge(status: item.status),
                       const SizedBox(height: Spacing.xs),
                       Text(
-                        'Rok: ${loanDeadline(item.status)}',
+                        'Rok: ${deadlineOf(item.status)?.date ?? '—'}',
                         style: overdue ? body?.copyWith(color: scheme.error, fontWeight: FontWeight.w600) : body,
                       ),
                     ],

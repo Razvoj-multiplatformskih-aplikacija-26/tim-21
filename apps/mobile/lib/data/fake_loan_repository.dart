@@ -18,7 +18,7 @@ final class FakeLoanRepository implements LoanRepository {
     await Future<void>.delayed(latency);
     if (failingRequests > 0) {
       failingRequests--;
-      throw const RepositoryException('Simulated outage');
+      throw const RepositoryException('Simulated outage', failure: RepositoryFailure.unreachable);
     }
   }
 

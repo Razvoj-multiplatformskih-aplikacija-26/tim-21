@@ -39,7 +39,7 @@ class _LoanBoardScreenState extends State<LoanBoardScreen> {
         Pending() || PickedUp() || Overdue() || Returned() || Cancelled() => 'Pozajmica je ažurirana.',
       },
       LoanBoardActionRejected(:final error) => error.message,
-      LoanBoardActionFailed() => 'Izmena nije sačuvana. Pokušajte ponovo.',
+      LoanBoardActionFailed(:final cause) => 'Izmena nije sačuvana. ${failureMessage(cause)}',
     };
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     context.read<LoanBoardBloc>().add(const LoanBoardNoticeAcknowledged());
@@ -58,13 +58,19 @@ class _LoanBoardScreenState extends State<LoanBoardScreen> {
   @override
   Widget build(BuildContext context) => LoanBoardShortcuts(
     child: Scaffold(
-      appBar: AppBar(title: const Text('Tabla pozajmica'), actions: const [_ReloadButton(), _DebugActions()]),
+      appBar: AppBar(
+        title: const Text('Tabla pozajmica'),
+        actions: const [_ReloadButton(), _DebugActions(), _LogOutButton()],
+      ),
       body: BlocConsumer<LoanBoardBloc, LoanBoardState>(
         listenWhen: (previous, current) => current is LoanBoardLoaded && current.notice != null,
         listener: (context, state) => _showNotice(context, (state as LoanBoardLoaded).notice!),
         builder: (context, state) => switch (state) {
           LoanBoardLoading() => const LoadingView(),
-          LoanBoardFailure() => FailureView(onRetry: () => _bloc.add(const LoanBoardRequested())),
+          LoanBoardFailure(:final cause) => FailureView(
+            cause: cause,
+            onRetry: () => _bloc.add(const LoanBoardRequested()),
+          ),
           LoanBoardEmpty() => const EmptyView(title: 'Nema pozajmica.'),
           LoanBoardLoaded() => _LoadedBody(state: state, boardFocus: _boardFocus, onOpenDetail: _openDetailSheet),
         },
@@ -197,6 +203,17 @@ class _ReloadButton extends StatelessWidget {
       icon: const Icon(Icons.refresh),
       onPressed: state.isBusy ? null : () => context.read<LoanBoardBloc>().add(const LoanBoardRequested()),
     ),
+  );
+}
+
+class _LogOutButton extends StatelessWidget {
+  const _LogOutButton();
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+    tooltip: 'Odjavi se',
+    icon: const Icon(Icons.logout),
+    onPressed: () => context.read<SessionBloc>().add(const SessionLogOutRequested()),
   );
 }
 

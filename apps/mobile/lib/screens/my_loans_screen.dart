@@ -7,7 +7,6 @@ import 'package:ui/ui.dart';
 
 import '../dependencies.dart';
 import '../widgets/cancel_dialog.dart';
-import '../widgets/loan_texts.dart';
 
 class MyLoansScreen extends StatelessWidget {
   const MyLoansScreen({super.key});
@@ -16,10 +15,10 @@ class MyLoansScreen extends StatelessWidget {
     final message = switch (notice) {
       LoanCancelled() => 'Pozajmica je otkazana.',
       CancellationRejected(:final error) => error.message,
-      CancellationFailed() => 'Otkazivanje nije uspelo. Pokušajte ponovo.',
+      CancellationFailed(:final cause) => 'Otkazivanje nije uspelo. ${failureMessage(cause)}',
       LoanRequestSent() => 'Zahtev je poslat.',
       LoanRequestRejected(:final error) => error.message,
-      LoanRequestFailed() => 'Zahtev nije poslat. Pokušajte ponovo.',
+      LoanRequestFailed(:final cause) => 'Zahtev nije poslat. ${failureMessage(cause)}',
     };
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     context.read<MyLoansBloc>().add(const MyLoansNoticeAcknowledged());
@@ -27,13 +26,19 @@ class MyLoansScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Moje pozajmice'), actions: const [_ReloadButton(), _DebugMenu()]),
+    appBar: AppBar(
+      title: const Text('Moje pozajmice'),
+      actions: const [_ReloadButton(), _DebugMenu(), _LogOutButton()],
+    ),
     body: BlocConsumer<MyLoansBloc, MyLoansState>(
       listenWhen: (previous, current) => current is MyLoansLoaded && current.notice != null,
       listener: (context, state) => _showNotice(context, (state as MyLoansLoaded).notice!),
       builder: (context, state) => switch (state) {
-        MyLoansLoading() => const LoadingView(),
-        MyLoansFailure() => FailureView(onRetry: () => context.read<MyLoansBloc>().add(const MyLoansRequested())),
+        MyLoansLoading() || MyLoansSignedOut() => const LoadingView(),
+        MyLoansFailure(:final cause) => FailureView(
+          cause: cause,
+          onRetry: () => context.read<MyLoansBloc>().add(const MyLoansRequested()),
+        ),
         MyLoansEmpty() => const EmptyView(title: 'Nemate pozajmica.'),
         MyLoansLoaded() => _LoanList(state: state),
       },
@@ -51,6 +56,17 @@ class _ReloadButton extends StatelessWidget {
       icon: const Icon(Icons.refresh),
       onPressed: state.isBusy ? null : () => context.read<MyLoansBloc>().add(const MyLoansRequested()),
     ),
+  );
+}
+
+class _LogOutButton extends StatelessWidget {
+  const _LogOutButton();
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+    tooltip: 'Odjavi se',
+    icon: const Icon(Icons.logout),
+    onPressed: () => context.read<SessionBloc>().add(const SessionLogOutRequested()),
   );
 }
 

@@ -5,11 +5,13 @@ import 'package:domain/domain.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/data/fake_sessions.dart';
 import 'package:mobile/dependencies.dart';
 import 'package:mobile/screens/my_loans_screen.dart';
 import 'package:use_cases/use_cases.dart';
 
 const _member = MemberId('ana');
+const _ana = User(id: UserId('ana'), name: 'Ana', role: Role.member);
 const _catan = BoardGame(id: BoardGameId('catan'), title: 'Catan');
 
 final class _StubRepository implements LoanRepository {
@@ -53,10 +55,10 @@ Loan _pendingLoan() => Loan(
 );
 
 Widget _screenOver(LoanRepository repository) => RepositoryProvider.value(
-  value: AppDependencies(loans: repository, clock: const SystemClock(), member: _member),
+  value: AppDependencies(loans: repository, sessions: FakeSessions(_ana), clock: const SystemClock()),
   child: BlocProvider(
     create: (_) =>
-        MyLoansBloc(repository: repository, clock: const SystemClock(), member: _member)..add(const MyLoansRequested()),
+        MyLoansBloc(repository: repository, clock: const SystemClock())..add(const MyLoansMemberChanged(_ana)),
     child: const MaterialApp(home: MyLoansScreen()),
   ),
 );

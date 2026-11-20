@@ -41,3 +41,115 @@ Osoblje radi sa tablom izdavanja i povraćaja (sve pozajmice sa filtriranjem po 
 ### 6. Javni sadržaj
 
 Bez prijave su dostupni: katalog društvenih igara (opis, broj igrača, trajanje partije, težina) sa filtriranjem, trenutna dostupnost kopija i dužina liste čekanja, pravila pozajmljivanja, radno vreme biblioteke i novo u ponudi.
+
+## Pokretanje
+
+Potrebni su Docker (Docker Desktop na Windows-u) i Flutter. Sve komande se pokreću iz korena repozitorijuma.
+
+### Baza i server
+
+```sh
+copy .env.example .env      # bash: cp .env.example .env
+docker compose up -d --build
+```
+
+`compose.yaml` podiže tri servisa:
+
+| Servis | Šta radi | Adresa |
+| --- | --- | --- |
+| `db` | PostgreSQL 17 | `localhost:5436` |
+| `migrate` | dbmate primeni migracije iz `apps/server/migrations`, pa izlazi | — |
+| `server` | server u Dartu na Relic-u, slika iz `apps/server/Dockerfile` | http://localhost:8080 |
+
+Lozinka baze, `DEMO_PASSWORD`, `JWT_SECRET` i portovi su u `.env`, koji nije u git-u; u repozitorijumu je samo `.env.example` sa razvojnim vrednostima. Kada je baza prazna, server pri pokretanju upiše početne podatke, sa datumima računatim od trenutka podizanja.
+
+Provera: `docker compose ps -a` (servis `migrate` je `Exited (0)`) i `curl http://localhost:8080/health` (odgovor `ok`; u PowerShell-u `curl.exe`).
+
+| Komanda | Šta radi |
+| --- | --- |
+| `docker compose logs -f server` | ispis servera; `logs migrate` za migracije |
+| `docker compose up -d --build server` | nova slika servera posle izmene u `apps/server` ili u paketima (npr. granice pravila u `domain`) |
+| `docker compose stop server` / `start server` | gasi i pali samo server (provera poruke „Nema veze sa serverom.“) |
+| `docker compose down` | gasi sistem, podaci ostaju |
+| `docker compose down -v` | gasi sistem i briše bazu; sledeći `docker compose up -d --build` kreće od nule, sa svežim početnim podacima |
+
+Ako je port zauzet, promenite ga u `.env`: `POSTGRES_PORT` (i isti port u `DATABASE_URL`) ili `SERVER_PORT` (aplikacije tada pokrenite sa `--dart-define=SERVER_URL=http://localhost:<port>`).
+
+Testovi servera traže pokrenutu bazu (`docker compose up -d db migrate`): `cd apps/server`, pa `dart test`.
+
+### Aplikacije
+
+Jednom, iz korena, za ceo workspace:
+
+```sh
+flutter pub get
+```
+
+Svaka aplikacija u svom terminalu:
+
+```sh
+cd apps/mobile
+flutter run                                 # Android emulator
+```
+
+```sh
+cd apps/backoffice
+flutter run -d windows
+flutter run -d chrome --web-port 8081       # backoffice u pregledaču
+```
+
+Za `flutter run -d windows` Windows traži uključen Developer Mode (`start ms-settings:developers`), jer Flutter pravi simboličke veze za dodatke (`flutter_secure_storage`), a Visual Studio komponentu **C++ ATL** (Visual Studio Installer → Desktop development with C++ → C++ ATL).
+
+Adrese servera:
+
+- **Android emulator** vidi računar na `10.0.2.2`, pa mobilna zove `http://10.0.2.2:8080`. Telefon na istoj mreži: `flutter run --dart-define=SERVER_URL=http://<IP računara>:8080`.
+- **Windows** zove `http://localhost:8080`.
+- **Pregledač** sme da zove server samo sa porekla navedenog u `CORS_ORIGINS` u `.env`; `.env.example` dozvoljava `http://localhost:8081`, zato backoffice u Chrome-u ide uz `--web-port 8081`. Više porekla se odvaja zarezom; `*` se ne koristi, jer ga pregledač uz kolačić ne prihvata. Posle izmene: `docker compose up -d server`.
+
+Obe aplikacije traže prijavu na ulazu. Mobilna prima samo članove, a backoffice samo osoblje.
+
+### Demo nalozi
+
+Lozinka za sve naloge je vrednost `DEMO_PASSWORD` iz `.env` (u `.env.example`: `boardgame-demo`). U bazi je samo njen Argon2id heš.
+
+| Nalog | Uloga | Aplikacija |
+| --- | --- | --- |
+| `clan1`, `clan2`, `clan3` | član | mobilna |
+| `bibliotekar1` | osoblje (bibliotekar) | backoffice |
+
+U početnim podacima je 6 igara sa po 1–3 kopije i pozajmice u svim stanjima. Carcassonne ima tačno jednu slobodnu kopiju i dva zahteva na čekanju za nju, od `clan1` i `clan2`: posle odobravanja jednog, drugo odobravanje dobija „Nema slobodne kopije ove igre.“ `clan3` ima preuzetu pozajmicu kojoj je rok prošao (kasni), pa ne može da šalje nove zahteve.
+
+### Istek prijave za demonstraciju
+
+Prijava podrazumevano traje 480 minuta. Za demonstraciju isteka u `.env` postavite `SESSION_TTL_MINUTES=1` i ponovo napravite kontejner servera:
+
+```sh
+docker compose up -d server
+```
+
+Minut posle prijave sledeći poziv dobija 401 `session-expired`, a aplikacija se vraća na ekran za prijavu sa porukom „Prijava je istekla. Prijavite se ponovo.“ Posle demonstracije vratite `SESSION_TTL_MINUTES=480` i ponovite istu komandu.
+
+### Skripta za testiranje
+
+`apps/server/tool/demo.ps1` zove pokrenuti server preko `curl.exe` i za svaku proveru ispisuje zahtev, očekivani i dobijeni status i telo odgovora. Lozinku čita iz `.env`.
+
+```powershell
+powershell -File apps/server/tool/demo.ps1                     # sve provere redom
+powershell -File apps/server/tool/demo.ps1 -Check duration     # samo jedna
+```
+
+| `-Check` | Šta radi | Očekivano |
+| --- | --- | --- |
+| `login` | `clan1` se prijavljuje kao aplikacija (`cookie: false`) | 201, `SessionDto` sa tokenom |
+| `duration` | `clan1` traži pozajmicu na 8 dana | 422 `invalid-loan-duration`, `max: 7` |
+| `approve-as-member` | `clan1` šalje odobravanje svog zahteva | 403 `not-allowed` |
+| `cancel-other` | `clan1` otkazuje pozajmicu člana `clan2` | 404 `not-found` |
+| `no-token` | poziv bez tokena | 401 `sign-in-required` |
+| `race` | dva istovremena odobravanja (`Start-Job`) za Carcassonne, igru sa jednom slobodnom kopijom | jedno 200, drugo 409 `no-free-copy` |
+
+Skripta izlazi sa 0 kada su svi statusi očekivani. Provera `race` odobri jedinu kopiju Carcassonne-a, pa se ponavlja tek nad bazom od nule:
+
+```sh
+docker compose down -v
+docker compose up -d --build
+```

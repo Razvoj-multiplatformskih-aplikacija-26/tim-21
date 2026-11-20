@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mobile/app.dart';
-import 'package:mobile/dependencies.dart';
-import 'package:mobile/router.dart';
+
+import 'support.dart';
 
 void main() {
-  testWidgets('app starts on the loans of the fake member', (tester) async {
-    await tester.pumpWidget(BoardGameApp(dependencies: AppDependencies.fake(latency: Duration.zero)));
+  testWidgets('app starts on the loans of the signed-in member', (tester) async {
+    await tester.pumpWidget(appWith(fakeDependencies()));
     await tester.pumpAndSettle();
 
     expect(find.text('Moje pozajmice'), findsOneWidget);
@@ -15,10 +14,9 @@ void main() {
   });
 
   testWidgets('loan request form checks the duration rule from the domain', (tester) async {
-    await tester.pumpWidget(BoardGameApp(dependencies: AppDependencies.fake(latency: Duration.zero)));
+    await tester.pumpWidget(appWith(fakeDependencies()));
     await tester.pumpAndSettle();
-    router.go('/pozajmice/loan-1/nova');
-    await tester.pumpAndSettle();
+    await goTo(tester, '/pozajmice/loan-1/nova');
 
     await tester.enterText(find.byType(TextFormField), '9');
     await tester.tap(find.text('Pošalji zahtev'));
@@ -28,10 +26,9 @@ void main() {
   });
 
   testWidgets('the duration is checked while typing, before the form is sent', (tester) async {
-    await tester.pumpWidget(BoardGameApp(dependencies: AppDependencies.fake(latency: Duration.zero)));
+    await tester.pumpWidget(appWith(fakeDependencies()));
     await tester.pumpAndSettle();
-    router.go('/pozajmice/loan-1/nova');
-    await tester.pumpAndSettle();
+    await goTo(tester, '/pozajmice/loan-1/nova');
 
     await tester.enterText(find.byType(TextFormField), '9');
     await tester.pump();
@@ -39,9 +36,23 @@ void main() {
     expect(find.text('Pozajmica traje od 1 do 7 dana.'), findsOneWidget);
   });
 
-  testWidgets('a simulated failure waits for the next request', (tester) async {
-    await tester.pumpWidget(BoardGameApp(dependencies: AppDependencies.fake(latency: Duration.zero)));
-    router.go('/');
+  testWidgets('a rule the repository enforces is shown from the domain error and the list is reloaded', (tester) async {
+    await tester.pumpWidget(appWith(fakeDependencies()));
+    await tester.pumpAndSettle();
+    await goTo(tester, '/pozajmice/loan-1/nova');
+
+    await tester.enterText(find.byType(TextFormField), '3');
+    await tester.tap(find.text('Pošalji zahtev'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Imate pozajmicu koja kasni. Vratite je pre novog zahteva.'), findsOneWidget);
+    expect(find.text('Moje pozajmice'), findsOneWidget);
+    expect(find.text('Na čekanju'), findsOneWidget);
+  });
+
+  testWidgets('an unreachable server is reported and the retry button loads again', (tester) async {
+    final dependencies = fakeDependencies();
+    await tester.pumpWidget(appWith(dependencies));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('Simulacija'));
@@ -53,6 +64,10 @@ void main() {
 
     await tester.tap(find.byTooltip('Osveži'));
     await tester.pumpAndSettle();
-    expect(find.text('Podaci trenutno nisu dostupni.'), findsOneWidget);
+    expect(find.text('Nema veze sa serverom.'), findsOneWidget);
+
+    await tester.tap(find.text('Pokušaj ponovo'));
+    await tester.pumpAndSettle();
+    expect(find.text('Na čekanju'), findsOneWidget);
   });
 }

@@ -1,0 +1,28 @@
+import 'package:domain/domain.dart';
+import 'package:postgres/postgres.dart';
+
+final class Account {
+  const Account({required this.user, required this.passwordHash});
+
+  final User user;
+  final String passwordHash;
+}
+
+final class AccountStore {
+  const AccountStore(this._database);
+
+  final Session _database;
+
+  Future<Account?> account(String login) async {
+    final rows = await _database.execute(
+      Sql.named('SELECT id, name, role, password_hash FROM users WHERE login = @login'),
+      parameters: {'login': login},
+    );
+    if (rows.isEmpty) return null;
+    final [id, name, role, hash] = rows.single;
+    return Account(user: _user(id, name, role), passwordHash: hash! as String);
+  }
+}
+
+User _user(Object? id, Object? name, Object? role) =>
+    User(id: UserId(id! as String), name: name! as String, role: Role.values.byName(role! as String));

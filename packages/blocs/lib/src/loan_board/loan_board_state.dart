@@ -20,7 +20,15 @@ final class LoanBoardLoading extends LoanBoardState {
 }
 
 final class LoanBoardFailure extends LoanBoardState {
-  const LoanBoardFailure();
+  const LoanBoardFailure(this.cause);
+
+  final Object cause;
+
+  @override
+  List<Object?> get props => [cause];
+
+  @override
+  String toString() => 'LoanBoardFailure($cause)';
 }
 
 final class LoanBoardEmpty extends LoanBoardState {
@@ -47,8 +55,6 @@ final class LoanBoardLoaded extends LoanBoardState {
 
   @override
   bool get isBusy => busyId != null;
-
-  bool isBusyWith(LoanBoardItem item) => busyId == item.loan.id;
 
   LoanBoardItem? get selected => items.where((item) => item.loan.id == selectedId).firstOrNull;
 
@@ -135,5 +141,10 @@ final class LoanBoardActionRejected extends LoanBoardNotice {
 }
 
 final class LoanBoardActionFailed extends LoanBoardNotice {
-  const LoanBoardActionFailed();
+  const LoanBoardActionFailed(this.cause);
+
+  final RepositoryException cause;
+
+  @override
+  List<Object?> get props => [cause];
 }

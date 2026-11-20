@@ -42,8 +42,11 @@ class _LoanRequestScreenState extends State<LoanRequestScreen> {
     appBar: AppBar(title: const Text('Nova pozajmica')),
     body: BlocBuilder<MyLoansBloc, MyLoansState>(
       builder: (context, state) => switch (state) {
-        MyLoansLoading() => const LoadingView(),
-        MyLoansFailure() => FailureView(onRetry: () => context.read<MyLoansBloc>().add(const MyLoansRequested())),
+        MyLoansLoading() || MyLoansSignedOut() => const LoadingView(),
+        MyLoansFailure(:final cause) => FailureView(
+          cause: cause,
+          onRetry: () => context.read<MyLoansBloc>().add(const MyLoansRequested()),
+        ),
         MyLoansEmpty() => const EmptyView(title: 'Pozajmica nije pronađena.'),
         MyLoansLoaded() => switch (state.items.where((item) => item.loan.id == widget.id).firstOrNull) {
           null => const EmptyView(title: 'Pozajmica nije pronađena.'),

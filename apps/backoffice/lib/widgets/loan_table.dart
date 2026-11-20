@@ -7,13 +7,6 @@ import 'package:ui/ui.dart';
 
 import 'scroll_reveal.dart';
 
-String loanDeadline(LoanStatus status) => switch (status) {
-  Approved(:final pickupDeadline) => formatDate(pickupDeadline),
-  PickedUp(:final dueAt) || Overdue(:final dueAt) => formatDate(dueAt),
-  Returned(:final returnedAt) => formatDate(returnedAt),
-  Pending() || Rejected() || Cancelled() => '—',
-};
-
 class LoanTable extends StatefulWidget {
   const LoanTable({
     super.key,
@@ -185,7 +178,7 @@ class _LoanRow extends StatelessWidget {
                 child: LoanStatusBadge(status: item.status),
               ),
               deadline: _TextCell(
-                loanDeadline(item.status),
+                deadlineOf(item.status)?.date ?? '—',
                 style: overdue ? body?.copyWith(color: scheme.error, fontWeight: FontWeight.w600) : body,
               ),
               requested: _TextCell(formatDate(item.loan.requestedAt), style: body),

@@ -1,3 +1,4 @@
+export 'src/access_policy.dart';
 export 'src/availability.dart';
 export 'src/catalog/board_game.dart';
 export 'src/errors.dart';
@@ -9,3 +10,4 @@ export 'src/loan/loan_filter.dart';
 export 'src/loan/loan_rules.dart';
 export 'src/loan/loan_status.dart';
 export 'src/result.dart';
+export 'src/user.dart';

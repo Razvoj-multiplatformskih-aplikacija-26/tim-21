@@ -18,7 +18,7 @@ final class FakeLoanDeskRepository implements LoanDeskRepository {
     await Future<void>.delayed(latency);
     if (failingRequests > 0) {
       failingRequests--;
-      throw const RepositoryException('Simulated outage');
+      throw const RepositoryException('Simulated outage', failure: RepositoryFailure.unreachable);
     }
   }
 
@@ -39,13 +39,8 @@ final class FakeLoanDeskRepository implements LoanDeskRepository {
   }
 
   @override
-  Future<Result<Loan>> approve(LoanId id) => _apply(
-    id,
-    (loan) => switch (assignCopy(game: loan.gameId, copies: fakeCopies, loans: _loans)) {
-      Failure(:final error) => Failure(error),
-      Success(value: final copy) => approveLoan(loan, copy, _clock.now()),
-    },
-  );
+  Future<Result<Loan>> approve(LoanId id) =>
+      _apply(id, (loan) => approveWithCopy(loan: loan, copies: fakeCopies, loans: _loans, now: _clock.now()));
 
   @override
   Future<Result<Loan>> reject(LoanId id) => _apply(id, rejectLoan);

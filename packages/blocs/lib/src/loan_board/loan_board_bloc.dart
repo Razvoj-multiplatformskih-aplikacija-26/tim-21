@@ -67,9 +67,9 @@ final class LoanBoardBloc extends Bloc<LoanBoardEvent, LoanBoardState> {
     final Result<Loan> result;
     try {
       result = await action();
-    } on RepositoryException {
+    } on RepositoryException catch (cause) {
       final latest = state;
-      if (latest is LoanBoardLoaded) emit(latest.copyWith(clearBusy: true, notice: const LoanBoardActionFailed()));
+      if (latest is LoanBoardLoaded) emit(latest.copyWith(clearBusy: true, notice: LoanBoardActionFailed(cause)));
       return;
     }
     final notice = switch (result) {
@@ -93,8 +93,8 @@ final class LoanBoardBloc extends Bloc<LoanBoardEvent, LoanBoardState> {
       }
       final games = await repository.games();
       emit(_loaded(_itemsFrom(loans, games), filter, keep: keep, notice: notice));
-    } on RepositoryException {
-      emit(const LoanBoardFailure());
+    } on RepositoryException catch (cause) {
+      emit(LoanBoardFailure(cause));
     }
   }
 

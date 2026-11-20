@@ -1,5 +1,7 @@
 import 'package:domain/domain.dart';
 
+const fakeLibrarian = User(id: UserId('bibliotekar1'), name: 'Bibliotekar', role: Role.librarian);
+
 const _ana = MemberId('member-1');
 const _marko = MemberId('member-2');
 const _jelena = MemberId('member-3');

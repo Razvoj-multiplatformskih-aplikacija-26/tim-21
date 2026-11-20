@@ -4,6 +4,12 @@ sealed class MyLoansEvent {
   const MyLoansEvent();
 }
 
+final class MyLoansMemberChanged extends MyLoansEvent {
+  const MyLoansMemberChanged(this.member);
+
+  final User? member;
+}
+
 final class MyLoansRequested extends MyLoansEvent {
   const MyLoansRequested();
 }

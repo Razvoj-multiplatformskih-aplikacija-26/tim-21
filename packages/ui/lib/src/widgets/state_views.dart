@@ -1,6 +1,8 @@
 import 'package:design_tokens/design_tokens.dart';
 import 'package:flutter/material.dart';
 
+import '../text/failures.dart';
+
 class LoadingView extends StatelessWidget {
   const LoadingView({super.key});
 
@@ -25,10 +27,10 @@ class EmptyView extends StatelessWidget {
 }
 
 class FailureView extends StatelessWidget {
-  const FailureView({super.key, required this.onRetry, this.title = 'Podaci trenutno nisu dostupni.'});
+  const FailureView({super.key, required this.onRetry, this.cause});
 
   final VoidCallback onRetry;
-  final String title;
+  final Object? cause;
 
   @override
   Widget build(BuildContext context) => Center(
@@ -39,7 +41,11 @@ class FailureView extends StatelessWidget {
         children: [
           Semantics(
             liveRegion: true,
-            child: Text(title, style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
+            child: Text(
+              failureMessage(cause),
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
           ),
           const SizedBox(height: Spacing.lg),
           FilledButton.tonalIcon(

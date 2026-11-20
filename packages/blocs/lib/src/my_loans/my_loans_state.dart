@@ -12,6 +12,10 @@ sealed class MyLoansState extends Equatable {
   String toString() => '$runtimeType';
 }
 
+final class MyLoansSignedOut extends MyLoansState {
+  const MyLoansSignedOut();
+}
+
 final class MyLoansLoading extends MyLoansState {
   const MyLoansLoading();
 
@@ -20,7 +24,15 @@ final class MyLoansLoading extends MyLoansState {
 }
 
 final class MyLoansFailure extends MyLoansState {
-  const MyLoansFailure();
+  const MyLoansFailure(this.cause);
+
+  final Object cause;
+
+  @override
+  List<Object?> get props => [cause];
+
+  @override
+  String toString() => 'MyLoansFailure($cause)';
 }
 
 final class MyLoansEmpty extends MyLoansState {
@@ -83,7 +95,12 @@ final class CancellationRejected extends MyLoansNotice {
 }
 
 final class CancellationFailed extends MyLoansNotice {
-  const CancellationFailed();
+  const CancellationFailed(this.cause);
+
+  final RepositoryException cause;
+
+  @override
+  List<Object?> get props => [cause];
 }
 
 final class LoanRequestSent extends MyLoansNotice {
@@ -100,5 +117,10 @@ final class LoanRequestRejected extends MyLoansNotice {
 }
 
 final class LoanRequestFailed extends MyLoansNotice {
-  const LoanRequestFailed();
+  const LoanRequestFailed(this.cause);
+
+  final RepositoryException cause;
+
+  @override
+  List<Object?> get props => [cause];
 }

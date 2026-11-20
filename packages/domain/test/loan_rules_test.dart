@@ -13,7 +13,7 @@ void main() {
   });
 
   test('a member with three active loans may not request a fourth', () {
-    expect(check([pending, pending, pending]), const Failure<void>(TooManyActiveLoans(3)));
+    expect(check([pending, pending, pending]), const Failure<void>(TooManyActiveLoans(3, max: 3)));
   });
 
   test('finished loans and loans of other members do not count', () {
@@ -60,6 +60,56 @@ void main() {
         Failure<Loan>(
           InvalidTransition(
             from: const Cancelled(),
+            to: Approved(pickupDeadline: wednesday),
+          ),
+        ),
+      );
+    });
+  });
+
+  group('approveWithCopy', () {
+    const first = GameCopy(id: GameCopyId('catan-1'), gameId: catan);
+    const second = GameCopy(id: GameCopyId('catan-2'), gameId: catan);
+    final holder = loanOf(
+      marko,
+      status: Approved(pickupDeadline: wednesday),
+      copy: first.id,
+    );
+
+    Result<Loan> approve(Loan loan, List<GameCopy> copies, List<Loan> loans) =>
+        approveWithCopy(loan: loan, copies: copies, loans: loans, now: monday);
+
+    test('approves a pending loan with the first free copy', () {
+      final result = approve(pending, [first, second], [holder]);
+
+      expect(result.valueOrNull?.status, Approved(pickupDeadline: wednesday));
+      expect(result.valueOrNull?.copyId, second.id);
+    });
+
+    test('a pending loan without a free copy gets NoFreeCopy', () {
+      expect(approve(pending, [first], [holder]), const Failure<Loan>(NoFreeCopy()));
+    });
+
+    test('an approved loan gets InvalidTransition, not NoFreeCopy, when no copy is free', () {
+      final approved = Approved(pickupDeadline: wednesday);
+
+      expect(
+        approve(loanOf(ana, status: approved, copy: second.id), [first], [holder]),
+        Failure<Loan>(
+          InvalidTransition(
+            from: approved,
+            to: Approved(pickupDeadline: wednesday),
+          ),
+        ),
+      );
+    });
+
+    test('a rejected loan gets InvalidTransition, not NoFreeCopy, when no copy is free', () {
+      expect(
+        approve(loanOf(ana, status: const Rejected()), [first], [holder]),
+        Failure<Loan>(
+          InvalidTransition(
+            from: const Rejected(),
             to: Approved(pickupDeadline: wednesday),
           ),
         ),

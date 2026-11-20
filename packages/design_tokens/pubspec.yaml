@@ -1,5 +1,5 @@
 name: design_tokens
-description: BoardGame Booking brand tokens as plain values, shared by the Flutter theme and the public web.
+description: BoardGame Booking brand tokens as plain values for the Flutter theme.
 publish_to: none
 version: 0.1.0
 

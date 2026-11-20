@@ -196,7 +196,7 @@ void main() {
 
     await tester.tap(find.text('Odobri'));
     await tester.pumpAndSettle();
-    expect(find.text('Izmena nije sačuvana. Pokušajte ponovo.'), findsOneWidget);
+    expect(find.text('Izmena nije sačuvana. Nema veze sa serverom.'), findsOneWidget);
     expect(boardState(tester).selected?.status, const Pending());
   });
 
@@ -388,7 +388,6 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    // MemberId is an extension type, so at run time the picker is a DropdownButton<String?>; find it by label.
     Future<void> pickMember(WidgetTester tester, String member) async {
       final memberPicker = find.descendant(
         of: find.byWidgetPredicate((widget) => widget is InputDecorator && widget.decoration.labelText == 'Član'),
@@ -426,7 +425,6 @@ void main() {
     testWidgets('no match shows a message inside the board, and reset brings every loan back', (tester) async {
       await pumpWideBoard(tester);
 
-      // Every rejected loan in the seed belongs to member-3 or member-5.
       await tapAndSettle(tester, chip('Odbijena'));
       await pickMember(tester, 'member-6');
       expect(find.text('Nema pozajmica za izabrane filtere.'), findsOneWidget);

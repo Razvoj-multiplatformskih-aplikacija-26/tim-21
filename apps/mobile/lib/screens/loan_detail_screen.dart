@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:ui/ui.dart';
 
 import '../widgets/cancel_dialog.dart';
-import '../widgets/loan_texts.dart';
 
 class LoanDetailScreen extends StatelessWidget {
   const LoanDetailScreen({super.key, required this.id});
@@ -18,8 +17,11 @@ class LoanDetailScreen extends StatelessWidget {
     appBar: AppBar(title: const Text('Pozajmica')),
     body: BlocBuilder<MyLoansBloc, MyLoansState>(
       builder: (context, state) => switch (state) {
-        MyLoansLoading() => const LoadingView(),
-        MyLoansFailure() => FailureView(onRetry: () => context.read<MyLoansBloc>().add(const MyLoansRequested())),
+        MyLoansLoading() || MyLoansSignedOut() => const LoadingView(),
+        MyLoansFailure(:final cause) => FailureView(
+          cause: cause,
+          onRetry: () => context.read<MyLoansBloc>().add(const MyLoansRequested()),
+        ),
         MyLoansEmpty() => const EmptyView(title: 'Pozajmica nije pronađena.'),
         MyLoansLoaded() => switch (state.items.where((item) => item.loan.id == id).firstOrNull) {
           null => const EmptyView(title: 'Pozajmica nije pronađena.'),

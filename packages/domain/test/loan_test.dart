@@ -11,8 +11,13 @@ void main() {
     });
 
     test('rejects zero and eight days', () {
-      expect(LoanDuration.parse(0), const Failure<LoanDuration>(InvalidLoanDuration(0)));
-      expect(LoanDuration.parse(8), const Failure<LoanDuration>(InvalidLoanDuration(8)));
+      expect(LoanDuration.parse(0), const Failure<LoanDuration>(InvalidLoanDuration(0, min: 1, max: 7)));
+      expect(LoanDuration.parse(8), const Failure<LoanDuration>(InvalidLoanDuration(8, min: 1, max: 7)));
+    });
+
+    test('an already accepted duration is kept even past today\'s limit', () {
+      expect(const LoanDuration.existing(8).days, 8);
+      expect(const LoanDuration.existing(5), LoanDuration.parse(5).valueOrNull);
     });
   });
 

@@ -1,5 +1,5 @@
 name: backoffice
-description: BoardGame Booking staff backoffice for lending, returns and waitlists.
+description: BoardGame Booking staff backoffice where librarians review the loan board and approve or reject loan requests.
 publish_to: none
 version: 0.1.0+1
 
@@ -8,6 +8,8 @@ environment:
 resolution: workspace
 
 dependencies:
+  api_client:
+    path: ../../packages/api_client
   blocs:
     path: ../../packages/blocs
   design_tokens:
@@ -19,9 +21,9 @@ dependencies:
   flutter_bloc: 9.1.1
   flutter_localizations:
     sdk: flutter
+  flutter_secure_storage: 11.2.0
   flutter_web_plugins:
     sdk: flutter
-  go_router: 18.0.2
   intl: 0.20.3
   ui:
     path: ../../packages/ui
