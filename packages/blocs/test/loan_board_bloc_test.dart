@@ -5,6 +5,7 @@ import 'package:test/test.dart';
 import 'package:use_cases/use_cases.dart';
 
 const _catan = BoardGame(id: BoardGameId('catan'), title: 'Catan');
+const _copies = [GameCopy(id: GameCopyId('catan-1'), gameId: BoardGameId('catan'))];
 const _ana = MemberId('ana');
 const _marko = MemberId('marko');
 final _now = DateTime.utc(2026, 11, 2, 12);
@@ -37,7 +38,7 @@ final class _Desk implements LoanDeskRepository {
 
   @override
   Future<Result<Loan>> approve(LoanId id) =>
-      _change(id, (loan) => approveLoan(loan, const GameCopyId('catan-1'), _now));
+      _change(id, (loan) => approveWithCopy(loan: loan, copies: _copies, loans: const [], now: _now));
 
   @override
   Future<Result<Loan>> reject(LoanId id) => _change(id, rejectLoan);

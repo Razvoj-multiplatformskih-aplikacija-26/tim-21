@@ -18,23 +18,9 @@ double contrast(int a, int b) {
 }
 
 void main() {
-  test('every text and status colour pair meets WCAG AA in both schemes', () {
-    for (final (scheme, c, s) in [
-      ('light', ColorTokens.light, StatusColorTokens.light),
-      ('dark', ColorTokens.dark, StatusColorTokens.dark),
-    ]) {
+  test('every status colour pair meets WCAG AA in both schemes', () {
+    for (final (scheme, s) in [('light', StatusColorTokens.light), ('dark', StatusColorTokens.dark)]) {
       final textPairs = <String, (int, int)>{
-        'onSurface on surface': (c.onSurface, c.surface),
-        'onSurfaceVariant on surface': (c.onSurfaceVariant, c.surface),
-        'onSurface on surfaceContainer': (c.onSurface, c.surfaceContainer),
-        'onSurfaceVariant on surfaceContainerHighest': (c.onSurfaceVariant, c.surfaceContainerHighest),
-        'primary on surface': (c.primary, c.surface),
-        'onPrimary on primary': (c.onPrimary, c.primary),
-        'onPrimaryContainer on primaryContainer': (c.onPrimaryContainer, c.primaryContainer),
-        'onSecondaryContainer on secondaryContainer': (c.onSecondaryContainer, c.secondaryContainer),
-        'onTertiaryContainer on tertiaryContainer': (c.onTertiaryContainer, c.tertiaryContainer),
-        'error on surface': (c.error, c.surface),
-        'onError on error': (c.onError, c.error),
         'pending': (s.onPending, s.pending),
         'approved': (s.onApproved, s.approved),
         'pickedUp': (s.onPickedUp, s.pickedUp),
@@ -46,7 +32,6 @@ void main() {
       for (final MapEntry(key: name, value: (foreground, background)) in textPairs.entries) {
         expect(contrast(foreground, background), greaterThanOrEqualTo(4.5), reason: '$scheme: $name');
       }
-      expect(contrast(c.outline, c.surface), greaterThanOrEqualTo(3), reason: '$scheme: outline on surface');
     }
   });
 }

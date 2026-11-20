@@ -17,12 +17,6 @@ Result<void> checkMemberMayRequest({required MemberId member, required List<Loan
   return const Success(null);
 }
 
-Result<Loan> approveLoan(Loan loan, GameCopyId copy, DateTime now) =>
-    switch (changeLoanStatus(loan, Approved(pickupDeadline: now.add(pickupWindow)))) {
-      Success(:final value) => Success(value.copyWith(copyId: copy)),
-      final Failure<Loan> failure => failure,
-    };
-
 Result<Loan> approveWithCopy({
   required Loan loan,
   required List<GameCopy> copies,
@@ -32,7 +26,7 @@ Result<Loan> approveWithCopy({
   final approved = Approved(pickupDeadline: now.add(pickupWindow));
   if (!canTransition(loan.status, approved)) return Failure(InvalidTransition(from: loan.status, to: approved));
   return switch (assignCopy(game: loan.gameId, copies: copies, loans: loans)) {
-    Success(value: final copy) => approveLoan(loan, copy, now),
+    Success(value: final copy) => Success(loan.copyWith(status: approved, copyId: copy)),
     Failure(:final error) => Failure(error),
   };
 }

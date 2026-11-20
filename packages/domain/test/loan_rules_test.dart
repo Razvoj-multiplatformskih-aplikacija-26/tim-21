@@ -35,28 +35,35 @@ void main() {
     expect(check([late, pending, pending]), const Failure<void>(MemberHasOverdueLoan()));
   });
 
-  group('approveLoan', () {
+  group('approving with the only copy', () {
     const copy = GameCopyId('catan-1');
 
+    Result<Loan> approveLoan(Loan loan) => approveWithCopy(
+      loan: loan,
+      copies: const [GameCopy(id: copy, gameId: catan)],
+      loans: const [],
+      now: monday,
+    );
+
     test('reserves the copy until the pickup window closes', () {
-      final result = approveLoan(pending, copy, monday);
+      final result = approveLoan(pending);
 
       expect(result.valueOrNull?.status, Approved(pickupDeadline: monday.add(pickupWindow)));
     });
 
     test('the pickup window is two days', () {
-      expect(approveLoan(pending, copy, monday).valueOrNull?.status, Approved(pickupDeadline: wednesday));
+      expect(approveLoan(pending).valueOrNull?.status, Approved(pickupDeadline: wednesday));
     });
 
     test('writes the assigned copy into the loan', () {
-      expect(approveLoan(pending, copy, monday).valueOrNull?.copyId, copy);
+      expect(approveLoan(pending).valueOrNull?.copyId, copy);
     });
 
     test('refuses a loan that is no longer pending', () {
       final cancelled = loanOf(ana, status: const Cancelled());
 
       expect(
-        approveLoan(cancelled, copy, monday),
+        approveLoan(cancelled),
         Failure<Loan>(
           InvalidTransition(
             from: const Cancelled(),
